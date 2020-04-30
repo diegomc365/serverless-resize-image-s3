@@ -1,0 +1,37 @@
+
+service: serverless-resize-image-s3
+
+custom: 
+  bucket: test
+  region: us-east-1
+  default_stage: prod
+  apigwBinary: 
+    types:
+      - '*/*'
+
+plugins:
+  - serverless-apigw-binary
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, self:custom.default_stage}
+
+package:
+  excludeDevDependencies: false
+  exclude:
+    - node_modules/**
+
+functions:
+  uploadS3Images:
+    handler: handler.app
+    environment:
+      bucket: ${self:custom.bucket}
+      region: ${self:custom.region}
+    events:
+      - http: ANY /
+      - http: ANY {proxy+}
+      - http:
+          path: /resize
+          method: post
+          cors: true
